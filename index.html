@@ -186,6 +186,23 @@
             margin-left: 0.5rem;
         }
         
+        .btn-loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         /* Header */
         header {
             position: relative;
@@ -624,7 +641,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #49637c;
+            background-color: var(--accent);
             font-size: 1.5rem;
         }
         
@@ -767,6 +784,12 @@
             box-shadow: 0 0 0 3px rgba(247, 183, 51, 0.2);
             outline: none;
             background-color: white;
+        }
+        
+        .form-control:disabled {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+            opacity: 0.7;
         }
         
         textarea.form-control {
@@ -1034,7 +1057,7 @@
     <header id="home">
         <div class="container header-content" data-aos="fade-up" data-aos-duration="1000">
             <img src="s.jpg" alt="صديق الفاتح" class="profile-img floating" loading="lazy" width="200" height="200">
-            <h1>صديق الفاتح</h1>
+            <h1 style="color: #fff;">صديق الفاتح</h1>
             <p class="tagline">خبير معدات الحفر والتعدين</p>
             <div class="social-icons">
                 <a href="https://wa.me/249119722727" aria-label="واتساب"><i class="fab fa-whatsapp"></i></a>
@@ -1069,7 +1092,7 @@
                     <ul class="info-list">
                         <li data-aos="fade-up" data-aos-delay="600">
                             <i class="fas fa-calendar-alt"></i>
-                            <span>العمر: 27 سنة</span>
+                            <span>العمر: 32 سنة</span>
                         </li>
                         <li data-aos="fade-up" data-aos-delay="700">
                             <i class="fas fa-map-marker-alt"></i>
@@ -1396,33 +1419,7 @@
                     </div>
                 </div>
                 
-                <div class="contact-form" data-aos="fade-left" data-aos-delay="400">
-                    <form id="contactForm">
-                        <div class="form-group">
-                            <label for="name">الاسم الكامل</label>
-                            <input type="text" id="name" class="form-control" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="email">البريد الإلكتروني</label>
-                            <input type="email" id="email" class="form-control" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="subject">الموضوع</label>
-                            <input type="text" id="subject" class="form-control" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="message">الرسالة</label>
-                            <textarea id="message" class="form-control" rows="5" required></textarea>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">
-                            إرسال الرسالة <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </form>
-                </div>
+              
             </div>
         </div>
     </section>
@@ -1477,7 +1474,7 @@
             mirror: false
         });
         
-        // Initialize Swiper with responsive settings
+        // Initialize Swiper with improved settings
         let swiper;
         function initSwiper() {
             swiper = new Swiper('.swiper-container', {
@@ -1485,14 +1482,22 @@
                 slidesPerView: 1,
                 spaceBetween: 20,
                 centeredSlides: true,
+                grabCursor: true,
                 autoplay: {
-                    delay: 5000,
-                    disableOnInteraction: false,
+                    delay: 3000,
+                    disableOnInteraction: true,
+                    pauseOnMouseEnter: true
                 },
                 pagination: {
                     el: '.swiper-pagination',
                     clickable: true,
                 },
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                speed: 800,
+                effect: 'slide',
                 breakpoints: {
                     768: {
                         slidesPerView: 1,
@@ -1635,6 +1640,15 @@
         reviewForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const submitButton = reviewForm.querySelector('button[type="submit"]');
+            const inputs = reviewForm.querySelectorAll('input, select, textarea');
+            
+            // Disable form inputs and show loading
+            inputs.forEach(input => input.disabled = true);
+            submitButton.disabled = true;
+            submitButton.classList.add('btn-loading');
+            submitButton.innerHTML = 'جاري الإرسال...';
+            
             const name = document.getElementById('reviewName').value;
             const rating = parseInt(document.getElementById('reviewRating').value);
             const text = document.getElementById('reviewText').value;
@@ -1669,12 +1683,26 @@
                 });
                 
                 // Reload reviews
-                loadReviews();
-                reviewForm.reset();
+                await loadReviews();
+                
+                // Show success message and reset form
                 alert('شكراً لك! تم إرسال رأيك بنجاح.');
+                
+                // Reset form and re-enable inputs
+                reviewForm.reset();
+                inputs.forEach(input => input.disabled = false);
+                submitButton.disabled = false;
+                submitButton.classList.remove('btn-loading');
+                submitButton.innerHTML = 'إرسال الرأي <i class="fas fa-paper-plane"></i>';
             } catch (error) {
                 console.error('Error:', error);
                 alert('حدث خطأ أثناء إرسال رأيك. يرجى المحاولة مرة أخرى.');
+                
+                // Re-enable inputs even on error
+                inputs.forEach(input => input.disabled = false);
+                submitButton.disabled = false;
+                submitButton.classList.remove('btn-loading');
+                submitButton.innerHTML = 'إرسال الرأي <i class="fas fa-paper-plane"></i>';
             }
         });
         
